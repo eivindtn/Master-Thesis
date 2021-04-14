@@ -315,4 +315,4 @@ def read_aruco_mark(img, dictonary, show=False):
     plt.legend()
     if show:
         plt.show()
-    return [x,y]
+    return [x,y], corners

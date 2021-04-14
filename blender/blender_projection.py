@@ -39,7 +39,7 @@ intersect_c = leg_mesh.intersectWithLine(axis_p1, axis_p2)
 
 ##add aruco mark to have a reference point
 dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
-aruco = gv.read_aruco_mark(img, dictionary)
+aruco, corners = gv.read_aruco_mark(img, dictionary)
 aruco_point = gv.pixel_to_point(z[int(aruco[0])][int(aruco[1])],aruco, cam_int) 
 
 #synthetic stub generation
