@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 class _geometry_vision:
     from cylinder_fitting import fit
@@ -320,6 +321,8 @@ class _geometry_vision:
             plt.show()
         return [x,y], corners
 =======
+=======
+>>>>>>> e925064bd57747f1742f46a1239fa9f3e0b45659
 from cylinder_fitting import fit
 """
 Written by: https://github.com/xingjiepan/cylinder_fitting/tree/master/cylinder_fitting
@@ -626,5 +629,9 @@ def read_aruco_mark(img, dictonary, show=False):
     plt.legend()
     if show:
         plt.show()
+<<<<<<< HEAD
+    return [x,y]
+>>>>>>> e925064bd57747f1742f46a1239fa9f3e0b45659
+=======
     return [x,y]
 >>>>>>> e925064bd57747f1742f46a1239fa9f3e0b45659
