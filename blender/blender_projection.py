@@ -14,11 +14,29 @@ t_ext = np.genfromtxt("blender/scenes/csv/T_1_2.csv", delimiter = ",") # Transfo
 
 intr = o3d.open3d.camera.PinholeCameraIntrinsic(cam_res[1], cam_res[0], fx=cam_int[0][0], fy=cam_int[1][1], cx=cam_int[0][2], cy=cam_int[1][2]) #intrinsic parameters in open3d
 leg_c, img, z = gv.pointcloud_blender('blender/scenes/exr/pointcloud.exr', cam_res[0], cam_res[1],intr, mode="simple") #read rendered pointcloud from Blender
-leg_c_d = leg_c.voxel_down_sample(voxel_size=0.2) # downsample pointcloud
+leg_c_d = leg_c.voxel_down_sample(svoxel_size=0.2) # downsample pointcloud
 leg_axis, leg_center, leg_r, fit_error = gv.fit(np.asarray(leg_c_d.points)) #cylinder fitting to the captured pointcloud
 
-o3d.io.write_point_cloud("leg_c.ply", leg_c)
-leg_point_cloud = v.load("leg_c.ply")
+o3d.io.write_point_cloud("blender/leg_c.ply", leg_c)
+leg_point_cloud = v.load("blender/leg_c.ply")
+
+##add aruco mark to have a reference point
+dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
+aruco, corners = gv.read_aruco_mark(img, dictionary)
+aruco_point = gv.pixel_to_point(z[int(aruco[0])][int(aruco[1])],aruco, cam_int) 
+corners_cloud = []
+for i in range (len(corners[0][0])):
+    corners_cloud.append(gv.pixel_to_point(z[int(corners[0][0][i][0])][int(corners[0][0][i][1])],corners[0][0][i], cam_int)) 
+corners_cloud = np.asarray(corners_cloud)
+
+#datacleaning, deleting the aruco mark from the pointcloud
+bound_box = [np.min(corners_cloud[:,0]),np.max(corners_cloud[:,0])+0.05,np.min(corners_cloud[:,1]),np.max(corners_cloud[:,1]), np.min(corners_cloud[:,2])-0.1,np.max(corners_cloud[:,2])+0.1]
+leg_point_cloud_clone = leg_point_cloud.clone()
+aruco_marker_cloud = leg_point_cloud.clone().crop(bounds= bound_box)
+hits = []
+for p in range (len(aruco_marker_cloud.points())):
+    hits.append(leg_point_cloud.closestPoint(aruco_marker_cloud.points()[p],N=1, returnPointId=True))
+leg_point_cloud_clone.deletePoints(hits).clean(tol=0.01)
 
 stub_axis = gv.perpendicular_vector(leg_axis)
 axis_p1 = leg_center+stub_axis*10 # define two points along the stub axis 
@@ -36,11 +54,6 @@ T[:3,3] = translation
 leg_mesh = v.pointcloud.delaunay2D(leg_c_d.points, mode='fit').subdivide(3) # create leg mesh from blender point cloud
 leg_mesh = leg_mesh.triangulate().alpha(0.2)
 intersect_c = leg_mesh.intersectWithLine(axis_p1, axis_p2)
-
-##add aruco mark to have a reference point
-dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
-aruco, corners = gv.read_aruco_mark(img, dictionary)
-aruco_point = gv.pixel_to_point(z[int(aruco[0])][int(aruco[1])],aruco, cam_int) 
 
 #synthetic stub generation
 stub  = v.shapes.Cylinder(pos=aruco_point, r=0.3, height=2, axis=stub_axis, c='teal3', alpha=1, cap=False, res=1000)

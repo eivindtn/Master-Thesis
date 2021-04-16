@@ -11,7 +11,7 @@ import geometry_vision as gv
 #proj_intr = np.genfromtxt("lab/scenes/csv/K_projector.csv", delimiter=",") #projector intrinsics
 #proj_res = [1920, 1200]
 #t_ext = np.genfromtxt("lab/scenes/csv/T_1_2.csv", delimiter = ",") # Transformation from cam to proj
-
+viz = o3d.visualization.draw_geometries
 
 leg_c = o3d.io.read_point_cloud("lab/chord.ply")
 leg_c_d = leg_c.voxel_down_sample(voxel_size=80) # downsample pointcloud
