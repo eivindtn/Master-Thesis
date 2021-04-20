@@ -6,6 +6,10 @@ import geometry_vision as gv
 
 
 #load intrinsics, extrinsics, pointcloud from the Blender setup
+cam_int = np.array([[1782.09204101562, 0, 977.639282226562],
+                    [0, 1782.05212402344, 587.777648925781],
+                    [0,0,1]])
+cam_dist = np.array([-0.0907880067825317, 0.134410485625267, -0.0652082785964012, 0.000578985665924847, -5.82622851652559e-05])
 #cam_int = np.genfromtxt("lab/scenes/csv/K_camera.csv", delimiter=",") # camera intrinsics
 #cam_res = [1920, 1200]
 #proj_intr = np.genfromtxt("lab/scenes/csv/K_projector.csv", delimiter=",") #projector intrinsics

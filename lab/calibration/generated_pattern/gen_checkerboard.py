@@ -4,7 +4,7 @@ import cv2
 # Shorter code to generate checkerboard
 
 # number of corners
-VERT = 7
+VERT = 6 
 HORI = 13
 
 ROWS = VERT + 1

@@ -110,19 +110,28 @@ def main():
     #'center' find the center of all squares in the frames from findChessBoardCorners() and find the correspondent pixel in the point cloud.
     method = ['corner', 'center']
 
-    #Intrinsics parameters of the 3D camera-Zivids camera intrinsics and distortion coeffsients.
-    camera_intrinsics = np.array([[2767.193359, 0 , 942.942505], [0, 2766.449119, 633.898],[0, 0, 1]])
-    distortion_coeffsients = np.array([[-0.26513, 0.282772, 0.000767328, 0.000367037,0]])
     
+    #Intrinsics parameters of the 3D camera-Zivids camera intrinsics and distortion coeffsients.
+    #zivid old one camera
+    #camera_intrinsics = np.array([[2767.193359, 0 , 942.942505], [0, 2766.449119, 633.898],[0, 0, 1]])
+    #distortion_coeffsients = np.array([[-0.26513, 0.282772, 0.000767328, 0.000367037,0]])
+    
+    #zivid two camera parameters
+    cam_int = np.array([[1782.09204101562, 0, 977.639282226562],
+                    [0, 1782.05212402344, 587.777648925781],
+                    [0,0,1]])
+    cam_dist = np.array([-0.0907880067825317, 0.134410485625267, -0.0652082785964012, 0.000578985665924847, -5.82622851652559e-05])
+
+
     #Flags from OpenCV which can give better accuracy.
     flags = cv2.CALIB_ZERO_TANGENT_DIST
 
     #The projector resoultion width x height (pixels).
-    projector_res_width = 1024
-    projector_res_height = 768
+    projector_res_width =  1920
+    projector_res_height = 1200 
 
     #The projected size of the pixels in the projected checkerboard image.
-    square_size = 90
+    square_size = 120 #120
 
     #Interpolate method, either: 'nearest' or 'linear'. This is if the pixel return a nan value in the point cloud.
     #'nearest' iterate to the nearest pixels around the set interpolation number.
@@ -141,7 +150,9 @@ def main():
 
     #Run ProjextorCalibrate from the Class ProjectorCalibrate
     for i in range(0, len(method)):
-        Calib = ProjectorCalibrate(cols, rows, images, zdf, camera_intrinsics, distortion_coeffsients, projector_res_width, projector_res_height,method[i], images_to_iterate, flags, number_shuffled_iteration, number_under_len, square_size, interpolate_method, interpolate_number)
+        #Calib = ProjectorCalibrate(cols, rows, images, zdf, camera_intrinsics, distortion_coeffsients, projector_res_width, projector_res_height,method[i], images_to_iterate, flags, number_shuffled_iteration, number_under_len, square_size, interpolate_method, interpolate_number)
+        Calib = ProjectorCalibrate(cols, rows, images, zdf, cam_int, cam_dist, projector_res_width, projector_res_height,method[i], images_to_iterate, flags, number_shuffled_iteration, number_under_len, square_size, interpolate_method, interpolate_number)
+
 
         flag , noflag, framepoints, P_3d_plan, nan_pixels =Calib.ProjectorCalibrate()
         flag = np.asarray(flag)

@@ -14,7 +14,7 @@ t_ext = np.genfromtxt("blender/scenes/csv/T_1_2.csv", delimiter = ",") # Transfo
 
 intr = o3d.open3d.camera.PinholeCameraIntrinsic(cam_res[1], cam_res[0], fx=cam_int[0][0], fy=cam_int[1][1], cx=cam_int[0][2], cy=cam_int[1][2]) #intrinsic parameters in open3d
 leg_c, img, z = gv.pointcloud_blender('blender/scenes/exr/pointcloud.exr', cam_res[0], cam_res[1],intr, mode="simple") #read rendered pointcloud from Blender
-leg_c_d = leg_c.voxel_down_sample(svoxel_size=0.2) # downsample pointcloud
+leg_c_d = leg_c.voxel_down_sample(voxel_size=0.2) # downsample pointcloud
 leg_axis, leg_center, leg_r, fit_error = gv.fit(np.asarray(leg_c_d.points)) #cylinder fitting to the captured pointcloud
 
 o3d.io.write_point_cloud("blender/leg_c.ply", leg_c)
