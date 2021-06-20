@@ -384,6 +384,7 @@ for c in range (len(translation)):
         #original_projection_mesh.cutWithLine(intersect_curve.points())
         
         '''
+        d
         inner_spline = []
         for p in projected_section:
             cpt = spline3d.closestPoint(p)
