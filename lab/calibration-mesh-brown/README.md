@@ -1,6 +1,6 @@
 # procam-calibration
 
-This repository provides a source code to calibrate projector-camera system using a chessboard and structured light (the graycode patterns).
+This repository provides a source code to calibrate projector-camera system using a chessboard and structured light (the graycode patterns). This repo is clone from this [repo](https://github.com/kamino410/procam-calibration), gratitude to kamnino.
 
 ## Requirement
 
@@ -40,7 +40,7 @@ Captured images must be saved as `./capture_*/graycode_*.(png/jpg)`.
 <table>
    <tr>
       <td><img src="./sample_data/capture_0/graycode_40.png"></td>
-      <td><img src="./sample_data/capture_0/graycode_15.png"></td>
+      <td><img src="./sample_data/capture_1/graycode_10.png"></td>
    </tr>
 </table>
 
