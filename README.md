@@ -1,5 +1,5 @@
 # Master-Thesis
-![alt text](http://url/to/img.png)
+![Overview](https://github.com/eivindtn/Master-Thesis/blob/main/img/overview.png)
 This repository represents my master thesis for the spring of 2021.
 The python version required for this repo is `>=3.5, <3.8`, and version used is `3.7.9`
 
@@ -27,9 +27,11 @@ A test example can be runned from runing the script in this [folder](https://git
 ```python
 python blender_projection-v2.py
 ```
+![Blender](https://github.com/eivindtn/Master-Thesis/blob/main/img/blender.jpg)
 ### Lab
 The lab use a Zivid Two camera for capturing point clouds. A test example can be runned from running this script in the [folder](https://github.com/eivindtn/Master-Thesis/tree/main/lab):
 
 ```python
 python lab_projection.py
 ```
+![Zivid](https://github.com/eivindtn/Master-Thesis/blob/main/img/zivid.jpg)
