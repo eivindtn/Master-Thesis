@@ -40,7 +40,7 @@ Captured images must be saved as `./capture_*/graycode_*.(png/jpg)`.
 <table>
    <tr>
       <td><img src="./sample_data/capture_0/graycode_40.png"></td>
-      <td><img src="./sample_data/capture_0/graycode_15.png"></td>
+      <td><img src="./sample_data/capture_0/graycode_10.png"></td>
    </tr>
 </table>
 
