@@ -1,6 +1,6 @@
 # Master-Thesis
 This repository represents my master thesis for the spring of 2021.
-The python version required for this repo is `>=3.5, <3.8`
+The python version required for this repo is `>=3.5, <3.8`, and version used is `3.7.9`
 
 ## Setup
 ### Zivid SDK
