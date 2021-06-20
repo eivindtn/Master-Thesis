@@ -5,7 +5,7 @@ import vedo as v
 import geometry_vision as gv
 from scipy.ndimage import gaussian_filter1d
 
-no =3
+no =3 #example point cloud from Blender, 1-3
 
 #load intrinsics, extrinsics, pointcloud from the Blender setup
 cam_int = np.genfromtxt("blender/scenes/csv/K_camera.csv", delimiter=",") # camera intrinsics
@@ -253,4 +253,53 @@ for i in range (0, len(toe_2d)):
 
 pic =v.Picture(blank_image)
 '''
+v.show(config_result_2[0][0],config_result_2[0][1],config_result_2[0][2],plot[0][0].c('black'),config_result_2[0][4].c('b').lw(5),config_result_2[0][5].c('b').lw(5), ref,cam_sys, proj_syst).close()
+
+
+#projector projected image
+v.show(plot[0][-1], axes =1).close()
+
+#thresh plot
+v.show(v.Picture(plot[0][-3]), axes= 1).close()
+
+#all sections 
+v.show(plot[0][0].c('g').ps(5),v.Points(plot[0][2]).c('r')).close()
+
+
+v.show([[plot[0][0].c('black').ps(5),v.Points(plot[0][2]).c('r'), leg_point_cloud, cam_sys],[plot[0][0].c('black').ps(5),v.Points(plot[0][2]).c('r')]], N=2).close()
+
+v.show(plot[0][0], plot[0][4]).close()
+
+v.show(plot[0][0], plot[0][3].c('r')).close()
+
+t=0
+trans = plot[t][5]
+rot = plot[t][5][:3,:3]
+rot_e = gv.R_to_eul(rot)
+rot_e_d = rot_e.as_euler('xyz', degrees = True)
+translat = plot[t][5][:3,3]*1000
+norm = np.linalg.norm(translat)
+print("Number", t)
+print("translation", translat)
+print("Transformation\n",trans)
+print("Rotation euler xyz",rot_e_d)
+print("Norm translat", norm)
+print("Average signed dist", plot[t][7])
+print("initial surface area ", plot[t][0].area())
+print("projected surface area ", plot[t][1].area())
+
+#histogram
+hst1 = v.pyplot.histogram(plot[0][6],
+                 bins=30,
+                 errors=True,
+                 aspect=4/3,
+                 title='',
+                 xtitle='Signed distance (m)',
+		 ytitle = 'Number of points',
+                 c='red',
+                 marker='o',
+                )
+
+v.show(hst1).close()
+
 print("done")

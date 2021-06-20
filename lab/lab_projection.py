@@ -17,21 +17,21 @@ state = states[1]
 #modes of testing for either demo, evaluation and accuracy 
 modes = ['section_projection', 'center_projection', 'evaluation']
 mode = modes[0]
-no_experiment = 26
-no_calibration = 00
+no_experiment = 12
+no_calibration = 0
 center = 'show_not'
 toe_mode = False
 figure_plotter =  True
 
 #paths to files
 settings_file = 'lab\\settings\\lab_settings.yml' #capture settings for the zivid two camera exported from zivid studio
-output_path = 'lab/results/Experiment_' + f'{no_experiment}' + '\\leg.zdf' #path to zivid data file format
-ply_path = 'lab/results/Experiment_' + f'{no_experiment}' + '\\leg.ply' #path to ply format so the data can be used into other python packages
+output_path = 'lab/result/Experiment_' + f'{no_experiment}' + '\\leg.zdf' #path to zivid data file format
+ply_path = 'lab/result/Experiment_' + f'{no_experiment}' + '\\leg.ply' #path to ply format so the data can be used into other python packages
 proj_calib_path =f'lab\\calibration\\csv\\center\\noflag\{no_calibration}-parameters.csv' #path to the intrinsics and extrinsics parameters of the projector-zivid system
 
 #path to experiment files
-result_ply_path = 'lab/results/Experiment_' + f'{no_experiment}' + '/config_'
-result_output_path = 'lab/results/Experiment_' + f'{no_experiment}' + '/config_'
+result_ply_path = 'lab/result/Experiment_' + f'{no_experiment}' + '/config_'
+result_output_path = 'lab/result/Experiment_' + f'{no_experiment}' + '/config_'
 
 #load intrinsics, extrinsics parameters for projector-zivid setup
 cam_int, cam_dist, cam_res = se.zivid_parameters()
@@ -40,9 +40,9 @@ SCREEN_ID = 0 #projector ID
 #viz = o3d.visualization.draw_geometries #visualization through open3d
 
 #configuration of the stub on the leg within rotation and translation 
-radius = 0.2 *1000 # stub radius in mm
-thickness = 15      # stub thickness to thicken the section cut onto the leg
-length = 1 * 600   # stub length in mm
+radius = 0.105 *1000 # stub radius in mm
+thickness = 20      # stub thickness to thicken the section cut onto the leg
+length = 1 * 400   # stub length in mm
 
 #arrays for saving mesh, coordinates and result for visualization 
 config_result = []
@@ -54,7 +54,7 @@ bound_x, bound_y, bound_z = [20,20], [20,20], [100,100] # delete points in the p
 tol_clean_fit = 0.033 # cleaning tol for fitting the cylinder points to an axis, radius and center
 tol_clean = 0.009 # downsampling cleaning for creating a mesh of the cylinder
 z_min = 300 # delete all points within less than z_min from the zivid camera
-z_max = 1200 # same as above but a max parameter
+z_max = 800 # same as above but a max parameter
 
 #capture a point cloud from the zivid camera
 if state == 'lab':
@@ -91,9 +91,9 @@ rotation = np.array([[0,0,0],
                      [0,0,0],
                      [0,0,0]]) #rotation in degrees around the axes 
                      
-translation = np.array([leg_axis*325,     #alternative configure the translation manually
-                        leg_axis*325,
-                        leg_axis*325]) #translation along the axes defined two lins above
+translation = np.array([leg_axis*200,     #alternative configure the translation manually
+                        leg_axis*300,
+                        leg_axis*400]) #translation along the axes defined two lins above
 #find a way to draw these axes either by open3d or vedo
 plane_axes = np.cross(stub_axis, leg_axis)
 plane_axes_2 =np.cross(axes[0], axes[2]) 
@@ -357,10 +357,10 @@ for c in range (len(translation)):
 
     if mode == 'section_projection':
         #section_cut_points, thresh = gv.find_image_structural_simularity(rgba[:, :, 0:3], rgba_projection[:, :, 0:3], xyz, show= True)
-        section_cut_points, thresh = gv.morphing(rgba[:, :, 0:3], rgba_projection[:, :, 0:3],xyz_projection, np.ones((4,4),np.uint8), show= False)
-        section_cut_points = v.Points(section_cut_points).clean(tol=0.0006)
+        section_cut_points, thresh = gv.morphing(rgba[:, :, 0:3], rgba_projection[:, :, 0:3],xyz_projection, np.ones((5,5),np.uint8), show= False)
+        section_cut_points = v.Points(section_cut_points).clean(tol=0.001)
         section_cut_points.deletePoints(np.where(section_cut_points.points()[:,2] >= z_max)[0]) #added cleaning by Z-componen
-        section_cut_points.deletePoints(np.where(section_cut_points.points()[:,2] <= z_min)[0])
+        section_cut_points.deletePoints(np.where(section_cut_points.points()[:,2] <= z_min)[0]) 
         print(len(section_cut_points.points()))
         section_points = []
         for p in section_cut_points.points():
@@ -467,6 +467,77 @@ for c in range (len(translation)):
 
     print('done')
 
+#config figure
+v.show([[config_result_2[0][0],config_result_2[0][1],config_result_2[0][2],plot[0][0].c('black'),config_result_2[0][4].c('b').lw(5),config_result_2[0][5].c('b').lw(5), ref,cam_sys, proj_syst],[config_result_2[1][0],config_result_2[1][1],config_result_2[1][2],plot[1][0].c('black'),config_result_2[1][4].c('b').lw(5),config_result_2[1][5].c('b').lw(5), ref,cam_sys, proj_syst],[config_result_2[2][0],config_result_2[2][1],config_result_2[2][2],plot[2][0].c('black'),config_result_2[2][4].c('b').lw(5),config_result_2[2][5].c('b').lw(5), ref,cam_sys, proj_syst]], N=3).close()
+
+#projector projected image
+v.show(v.Picture(plot[0][-1]),v.Picture(plot[1][-1]),v.Picture(plot[2][-1]), N=3, axes=1).close()
+
+#thresh plot
+v.show(v.Picture(plot[0][-3]),v.Picture(plot[1][-3]),v.Picture(plot[2][-3]), N=3, axes=1).close()
+
+#all sections 
+v.show(plot[0][0].c('g').ps(5),v.Points(plot[0][2]).c('r'), plot[1][0].c('g').ps(5),v.Points(plot[1][2]).c('r'),plot[2][0].c('g').ps(5),v.Points(plot[2][2]).c('r'), leg_point_cloud_projection).close()
+
+#show point deviation 
+v.show([[plot[0][0].c('black').ps(5),v.Points(plot[0][2]).c('r'), leg_point_cloud_projection, cam_sys],[plot[1][0].c('black').ps(5),v.Points(plot[1][2]).c('r'), leg_point_cloud_projection, cam_sys],
+[plot[2][0].c('black').ps(5),v.Points(plot[2][2]).c('r'), leg_point_cloud_projection, cam_sys],[plot[0][0].c('black').ps(5),v.Points(plot[0][2]).c('r')],[plot[1][0].c('black').ps(5),v.Points(plot[1][2]).c('r')],
+[plot[2][0].c('black').ps(5),v.Points(plot[2][2]).c('r')]], N=6).close()
+
+#Signed distance
+v.show([[plot[0][0], plot[0][4]],[plot[1][0], plot[1][4]],[plot[2][0], plot[2][4]]], N=3).close()
+
+#Alligned after ICP
+v.show([[plot[0][0], plot[0][3].c('r')],[plot[1][0], plot[1][3].c('r')],[plot[2][0], plot[2][3].c('r')]], N=3).close()
+
+#print transformation matrix
+for t in range(3):
+    trans = plot[t][5]
+    rot = plot[t][5][:3,:3]
+    rot_e = gv.R_to_eul(rot)
+    rot_e_d = rot_e.as_euler('xyz', degrees = True)
+    translat = plot[t][5][:3,3]
+    norm = np.linalg.norm(translat)
+    print("Number", t)
+    print("Transformation\n",trans)
+    print("Rotation euler xyz",rot_e_d)
+    print("Norm translat", norm)
+    print("Average signed dist", plot[t][7])
+    print("initial surface area ", plot[t][0].area())
+    print("projected surface area ", plot[t][1].area())
+
+#histogram
+hst1 = v.pyplot.histogram(plot[0][6],
+                 bins=30,
+                 errors=True,
+                 aspect=4/3,
+                 title='',
+                 xtitle='Signed distance (mm)',
+		 ytitle = 'Number of points',
+                 c='red',
+                 marker='o',
+                )
+hst2 = v.pyplot.histogram(plot[1][6],
+                 bins=30,
+                 errors=True,
+                 aspect=4/3,
+                 title='',
+                 xtitle='Signed distance (mm)',
+		 ytitle = 'Number of points',
+                 c='blue',
+                 marker='o',
+                )
+hst3 = v.pyplot.histogram(plot[2][6],
+                 bins=30,
+                 errors=True,
+                 aspect=4/3,
+                 title='',
+                 xtitle='Signed distance (mm)',
+		 ytitle = 'Number of points',
+                 c='green',
+                 marker='o',
+                )
+v.show(hst1, hst2, hst3, N=3).close()
 #Plott the result
 #v.show([[leg_mesh,config_result[0][4].c('r'), config_result[0][5].c('r'), inner_spline.c('g'), outer_spline.c('g')], [leg_point_cloud_projection, inner_spline.c('y').ps(5), outer_spline.c('y').ps(5)] ,[v.Picture(rgba_projection[:,:,0:3])]],N=3, sharecam= False,axes=3).close()
 #v.show([[leg_mesh,config_result[0][4].c('r'), config_result[0][5].c('r'), inner_spline.c('g'), outer_spline.c('g')], [leg_point_cloud_projection, inner_spline.c('y').ps(5), outer_spline.c('y').ps(5)]],N=2, sharecam= False,axes=3).export("scene.npz").close()

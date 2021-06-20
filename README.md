@@ -30,7 +30,7 @@ python blender_projection-v2.py
 ```
 ![Blender](https://github.com/eivindtn/Master-Thesis/blob/main/img/blender.jpg)
 ### Lab
-The lab use a Zivid Two camera for capturing point clouds. A test example can be runned from running this script in the [folder](https://github.com/eivindtn/Master-Thesis/tree/main/lab):
+The lab use a Zivid Two camera for capturing point clouds. A test example can be runned from running this script in the [folder](https://github.com/eivindtn/Master-Thesis/tree/main/lab), PS: it take a while to run this example:
 
 ```python
 python lab_projection.py
