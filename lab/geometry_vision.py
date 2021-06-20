@@ -5,9 +5,14 @@ import OpenEXR
 import numpy as np
 import open3d as o3d
 import math
-import scipy 
 import matplotlib.pyplot as plt
 import cv2
+import zivid
+from scipy.interpolate import griddata
+from skimage.metrics import structural_similarity
+from scipy.spatial.transform import Rotation as Rotxyz
+
+
 
 from cylinder_fitting import fit
 """
@@ -293,6 +298,20 @@ def order_boundary(msh):
     poly.GetPoints().SetData(poly.GetCell(0).GetPoints().GetData())
     return msh
 
+def interpolate_xyz(interpolate_number, array, u, v):
+        xyz = array[v-interpolate_number:v+interpolate_number+1, u-interpolate_number:u+interpolate_number+1]
+        x_indx,y_indx,z_indx = np.meshgrid(np.arange(0, np.shape(xyz)[0]),np.arange(0,np.shape(xyz)[1]), np.arange(0,np.shape(xyz)[2]))
+            
+        array_masked = np.ma.masked_invalid(xyz)
+        valid_xs = x_indx[~array_masked.mask]
+        valid_ys = y_indx[~array_masked.mask]
+        valid_zs = z_indx[~array_masked.mask]
+        validarr = array_masked[~array_masked.mask]
+            
+        xyz_interp = griddata((valid_xs, valid_ys, valid_zs), validarr.ravel(),
+                                        (x_indx, y_indx, z_indx), method='nearest')
+        return xyz_interp[interpolate_number][interpolate_number]
+
 def create_aruco_mark(dictionary, name):
     markerImage = np.zeros((200, 200), dtype=np.uint8)
     markerImage = cv2.aruco.drawMarker(dictionary, 22, 200, markerImage, 1)
@@ -316,3 +335,145 @@ def read_aruco_mark(img, dictonary, show=False):
     if show:
         plt.show()
     return [x,y], corners
+
+def find_aruco_point(aruco_marker, xyz, interpolate_number,rgba):
+    corners_cloud = []
+    dictionary = cv2.aruco.Dictionary_get(aruco_marker)
+    aruco, corners = read_aruco_mark(rgba[:, :, 0:3], dictionary, show= True)
+    aruco_point = xyz[int(aruco[1]),int(aruco[0])]
+    if np.isnan(aruco_point).any() == True:
+        print(f'Could not find the aruco marker in the point cloud, interpolate to find with the {interpolate_number} nearest pixels.')
+        aruco_point  = interpolate_xyz(interpolate_number, xyz,int(aruco[0]),int(aruco[1]))
+    for i in range (len(corners[0][0])):
+        corner_i = xyz[int(corners[0][0][i][1])][int(corners[0][0][i][0])]
+        if np.isnan(corner_i).any() == True:
+            corners_cloud.append(interpolate_xyz(interpolate_number, xyz, int(corners[0][0][i][0]), int(corners[0][0][i][1])))
+        else:
+             corners_cloud.append(corner_i)
+    corners_cloud = np.asarray(corners_cloud)
+    return aruco_point, corners_cloud
+def delete_aruco_marker_from_point_cloud(leg_point_cloud, corners_cloud, bound_x, bound_y, bound_z):
+    bound_box = [np.min(corners_cloud[:,0])-bound_x[0],np.max(corners_cloud[:,0])+bound_x[1],np.min(corners_cloud[:,1])-bound_y[0],np.max(corners_cloud[:,1])+bound_y[1], np.min(corners_cloud[:,2])-bound_z[0],np.max(corners_cloud[:,2])+bound_z[1]]
+    leg_point_cloud_clone = leg_point_cloud.clone()
+    aruco_marker_cloud = leg_point_cloud.clone().crop(bounds= bound_box)
+    hits = []
+    for p in range (len(aruco_marker_cloud.points())):
+        hits.append(leg_point_cloud.closestPoint(aruco_marker_cloud.points()[p],N=1, returnPointId=True))
+    leg_point_cloud_clone.deletePoints(hits)
+    return leg_point_cloud_clone, aruco_marker_cloud
+
+def display_pointcloud(xyz, rgb):
+    """Display point cloud.
+    Args:
+        rgb: RGB image
+        xyz: X, Y and Z images (point cloud co-ordinates)
+    Returns None"""
+    xyz = np.nan_to_num(xyz).reshape(-1, 3)
+    rgb = rgb.reshape(-1, 3)
+
+    point_cloud_open3d = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(xyz))
+    point_cloud_open3d.colors = o3d.utility.Vector3dVector(rgb / 255)
+
+    visualizer = o3d.visualization.Visualizer()  # pylint: disable=no-member
+    visualizer.create_window()
+    visualizer.add_geometry(point_cloud_open3d)
+
+    visualizer.get_render_option().background_color = (0, 0, 0)
+    visualizer.get_render_option().point_size = 1
+    visualizer.get_render_option().show_coordinate_frame = True
+    visualizer.get_view_control().set_front([0, 0, -1])
+    visualizer.get_view_control().set_up([0, -1, 0])
+
+    visualizer.run()
+    visualizer.destroy_window()
+
+def load_zdf_frames(zdf, ply, visualization = False, downsample = False):
+    app = zivid.Application()
+    frame = zivid.Frame(zdf)
+    frame.save(ply)
+    point_cloud = frame.point_cloud()
+    xyz = frame.point_cloud().copy_data("xyz")
+    rgba = point_cloud.copy_data("rgba")
+    if visualization == True:
+        display_pointcloud(xyz, rgba[:, :, 0:3])
+    if downsample == True:
+        point_cloud.downsample(zivid.PointCloud.Downsampling.by2x2)
+        xyz_donwsampled = point_cloud.copy_data("xyz")
+        rgba_downsampled = point_cloud.copy_data("rgba")
+        display_pointcloud(xyz_donwsampled, rgba_downsampled[:, :, 0:3])
+        return xyz, rgba, xyz_donwsampled, rgba_downsampled
+
+    return xyz, rgba
+
+def display_rgb(rgb, title):
+    """Display RGB image.
+    Args:
+        rgb: RGB image (HxWx3 darray)
+        title: Image title
+    Returns None
+    """
+    plt.figure()
+    plt.imshow(rgb)
+    plt.title(title)
+    plt.show(block=False)
+
+
+def display_depthmap(xyz):
+    """Create and display depthmap.
+    Args:
+        xyz: X, Y and Z images (point cloud co-ordinates)
+    Returns None
+    """
+    plt.figure()
+    plt.imshow(
+        xyz[:, :, 2],
+        vmin=np.nanmin(xyz[:, :, 2]),
+        vmax=np.nanmax(xyz[:, :, 2]),
+        cmap="viridis",
+    )
+    plt.colorbar()
+    plt.title("Depth map")
+    plt.show(block=False)
+
+def find_image_structural_simularity(img1, img2, xyz, show= True):
+    # convert the images to grayscale
+    grayA = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    grayB = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+
+    # compute the Structural Similarity Index (SSIM) between the two
+    # images, ensuring that the difference image is returned
+    (score, diff) = structural_similarity(grayA, grayB, full=True)
+    diff = (diff * 255).astype("uint8")
+    #print("SSIM: {}".format(score))
+
+    # threshold the difference image, followed by finding contours to
+    # obtain the regions of the two input images that differ
+    thresh = cv2.threshold(diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+    if show == True:
+        plt.imshow(thresh)
+        plt.show()
+    y,x = np.nonzero(thresh)
+    points = []
+    for i in range (len(x)):
+        points.append(xyz[y[i],x[i]])
+    return points,thresh
+
+def morphing(img1, img2,xyz, kernel, show= True):
+    grayA = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    grayB = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    image = grayA-grayB
+    morph = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+    y,x = np.nonzero(morph)
+    points = []
+
+    if show == True:
+        plt.imshow(morph)
+        plt.show()
+
+    for i in range (len(x)):
+        if np.invert(np.isnan(xyz[y[i],x[i]])).any() == True:
+            points.append(xyz[y[i],x[i]])
+    return points, morph 
+def R_to_eul(R):
+    r = Rotxyz.from_matrix(R)
+    return r

@@ -7,6 +7,8 @@ import open3d
 import matplotlib.pyplot as plt
 np.set_printoptions(suppress=True)
 
+def writeCSV(filename, matrix):
+    np.savetxt(filename, matrix, delimiter=",", fmt='% s')
 
 def visualizationstereo(points, rotation, translation,windowname):
     point_cloud = open3d.geometry.PointCloud()
@@ -99,8 +101,8 @@ def main():
     #-----------Initialize all parameters------------#
     
     #Number of inner corners.
-    cols = 9 #No. Columns
-    rows = 6 #No. Rows
+    cols = 17 #No. Columns
+    rows = 11 #No. Rows
 
     #Import images and .zdf files from the folders location.
     images = glob.glob("lab/calibration/captured_images/*.png")
@@ -120,7 +122,7 @@ def main():
     cam_int = np.array([[1782.09204101562, 0, 977.639282226562],
                     [0, 1782.05212402344, 587.777648925781],
                     [0,0,1]])
-    cam_dist = np.array([-0.0907880067825317, 0.134410485625267, -0.0652082785964012, 0.000578985665924847, -5.82622851652559e-05])
+    cam_dist = np.array([-0.0907880067825317, 0.134410485625267,0.000578985665924847, -5.82622851652559e-05,-0.0652082785964012,])
 
 
     #Flags from OpenCV which can give better accuracy.
@@ -128,10 +130,10 @@ def main():
 
     #The projector resoultion width x height (pixels).
     projector_res_width =  1920
-    projector_res_height = 1200 
+    projector_res_height = 1080 
 
     #The projected size of the pixels in the projected checkerboard image.
-    square_size = 120 #120
+    square_size = 60 #120
 
     #Interpolate method, either: 'nearest' or 'linear'. This is if the pixel return a nan value in the point cloud.
     #'nearest' iterate to the nearest pixels around the set interpolation number.
@@ -144,8 +146,8 @@ def main():
     # This is a number so you can pick out a 'number_under_len' frames under the total frames in folder 'images' to iterate over many different combiantions of the frames. 
     #'number_shuffled_iteration'. The number of random shuffled iteration of the number of frames extracted  
     images_to_iterate = len(images)
-    number_under_len = 5
-    number_shuffled_iteration = 5
+    number_under_len = 10
+    number_shuffled_iteration = 10
     
 
     #Run ProjextorCalibrate from the Class ProjectorCalibrate
@@ -200,6 +202,32 @@ def main():
         print("\n Projector distortion coefficents:\n",noflag[0][3])
         print("\nThe rotation vector between camera and projector:\n",noflag[0][6])
         print("\nThe translationg vector between camera and projector:\n",noflag[0][7])
+        for j in range(len(flag)):
+            fs = cv2.FileStorage(f'lab\\calibration\\csv\\{method[i]}\\flag\{j}-parameters.csv', cv2.FILE_STORAGE_WRITE)
+            fs.write('rms_camera', flag[j][0])
+            fs.write('rms_stereo', flag[j][1])
+            fs.write('proj_int', flag[j][2])
+            fs.write('proj_dist', flag[j][3])
+            fs.write('avg_error', flag[j][4])
+            #fs.write('frame_error', flag[j][5])
+            fs.write('rotation', flag[j][6])
+            fs.write('translation', flag[j][7])
+            fs.write('no_frames', flag[j][8])
+            fs.write('it_no', flag[j][9])
+            fs.release()
+            fk =  cv2.FileStorage(f'lab\\calibration\\csv\\{method[i]}\\noflag\{j}-parameters.csv', cv2.FILE_STORAGE_WRITE)
+            fk.write('rms_camera', noflag[j][0])
+            fk.write('rms_stereo', noflag[j][1])
+            fk.write('proj_int', noflag[j][2])
+            fk.write('proj_dist', noflag[j][3])
+            fk.write('avg_error', noflag[j][4])
+            #fs.write('frame_error', noflag[j][5])
+            fk.write('rotation', noflag[j][6])
+            fk.write('translation', noflag[j][7])
+            fk.write('no_frames', noflag[j][8])
+            fk.write('it_no', noflag[j][9])
+            fk.release()
+
     print("done")
 if __name__ == "__main__":
     main()

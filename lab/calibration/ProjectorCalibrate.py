@@ -84,6 +84,7 @@ class ProjectorCalibrate:
                 if(x > int(xspacing) and y > int(yspacing)):   
                     checkerboardcordinates = np.append(checkerboardcordinates, np.array([x,y]))
         checkerboardcordinates = np.reshape(checkerboardcordinates, (-1,2))
+        #print(checkerboardcordinates)
         return checkerboardcordinates
     
     def Interpolate_xyz(self, array, u, v):

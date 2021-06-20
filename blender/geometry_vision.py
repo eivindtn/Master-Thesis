@@ -8,6 +8,7 @@ import math
 import scipy 
 import matplotlib.pyplot as plt
 import cv2
+from scipy.spatial.transform import Rotation as Rotxyz
 
 from cylinder_fitting import fit
 """
@@ -187,15 +188,15 @@ def pointcloud_blender(inputEXR, resx,resy, intrinsics, mode= None):
     np.clip(rgb, 0, 1.0)  # to better visualize as HDR is not supported?
 
     img = o3d.geometry.Image((rgb * 255).astype(np.uint8)) #create image
-    depth = o3d.geometry.Image((img_data[-1] * 1000).astype(np.uint16)) #set depth data to mm
+    depth = o3d.geometry.Image((img_data[-1] * 1000).astype(np.uint16)) #set depth data to mm 
     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(img, depth, depth_scale=1000.0, depth_trunc=3.0, convert_rgb_to_intensity=False) # the scaling need to be set to 1000 to have mm
     pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, intrinsics) # return a pointcloud in open3d format
     z = np.asarray(depth)
     if mode == "complete":
         pixels_xyz_corr = np.empty((resy,resx,3))
-        for i in range(1080):
+        for i in range(1200):
            for j in range(1920):
-            pixels_xyz_corr[i][j] = pixel_to_point(z[i][j],[i,j],intrinsics.intrinsic_matrix, depth_scale=10000) # set the depth scal to the same as above
+            pixels_xyz_corr[i][j] = pixel_to_point(z[i][j],[j,i],intrinsics.intrinsic_matrix, depth_scale=1000) # set the depth scal to the same as above
         return pcd, np.asarray(img),np.asarray(pixels_xyz_corr)
     return pcd,np.asarray(img),z
 
@@ -316,3 +317,31 @@ def read_aruco_mark(img, dictonary, show=False):
     if show:
         plt.show()
     return [x,y], corners
+
+def visualizationstereo(points, rotation, translation,windowname):
+    c_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5, origin=[0, 0, 0])
+    p_frame = copy.deepcopy(c_frame)
+    p_frame.rotate(rotation, center = (0,0,0))
+    p_frame = copy.deepcopy(p_frame).translate((translation[0], translation[1], translation[2]))
+    o3d.visualization.draw_geometries([points ,c_frame, p_frame],window_name=windowname,width=1000, height=1080)
+
+def morphing(img1, img2,xyz, kernel, show= True):
+    grayA = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    grayB = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    image = grayA-grayB
+    morph = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+    y,x = np.nonzero(morph)
+    points = []
+
+    if show == True:
+        plt.imshow(morph)
+        plt.show()
+
+    for i in range (len(x)):
+        if np.invert(np.isnan(xyz[y[i],x[i]])).any() == True:
+            points.append(xyz[y[i],x[i]])
+    return points, morph 
+
+def R_to_eul(R):
+    r = Rotxyz.from_matrix(R)
+    return r

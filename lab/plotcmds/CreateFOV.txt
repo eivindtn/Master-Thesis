@@ -1,0 +1,15 @@
+#Create FOV
+pts = [(-567,-350), (567,-350), (567,350), (-567,350)]
+p = v.shapes.Line(pts, closed=True).lw(1)
+ep = p.extrude(zshift=700, dR=-567+150).flat()
+ep.rotateY(180)
+ep.shift(0,0,350+350)
+
+#create a FOV surface for a figure and clone it and transform it to another coordinate system
+pts = [(-800,-550), (800,-550), (800,550), (-800,550)]
+p = v.shapes.Line(pts, closed=True).lw(1)
+ep2 = p.extrude(zshift=500, dR=-850).flat()
+ep2.rotateY(180)
+ep2.shift(0,0,500)
+fov_clone = ep2.clone()
+fov_clone.applyTransform(t_ext)

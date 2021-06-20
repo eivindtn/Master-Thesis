@@ -22,7 +22,7 @@ leg_point_cloud = v.load("blender/leg_c.ply")
 
 ##add aruco mark to have a reference point
 dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
-aruco, corners = gv.read_aruco_mark(img, dictionary)
+aruco, corners = gv.read_aruco_mark(img, dictionary, show=True)
 aruco_point = gv.pixel_to_point(z[int(aruco[0])][int(aruco[1])],aruco, cam_int) 
 corners_cloud = []
 for i in range (len(corners[0][0])):
@@ -179,4 +179,4 @@ for i in range (0, len(toe_2d)):
 
 pic =v.Picture(blank_image)
 
-print("#done")
+print("done")
