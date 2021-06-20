@@ -1,6 +1,6 @@
 # procam-calibration
 
-This repository provides a source code to calibrate projector-camera system using a chessboard and structured light (the graycode patterns).
+This repository provides a source code to calibrate projector-camera system using a chessboard and structured light (the graycode patterns). This repo is clone from this [repo](https://github.com/kamino410/procam-calibration), gratitude to kamnino.
 
 ## Requirement
 
