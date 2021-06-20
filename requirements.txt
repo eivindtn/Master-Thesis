@@ -1,0 +1,14 @@
+numpy
+open3d
+cylinder_fitting==1.1.4
+pyyaml
+opencv-contrib-python
+opencv-python
+vedo
+matplotlib
+scikit-image
+scipy
+zivid
+screeninfo
+wheel==0.34.2
+whl/OpenEXR-1.3.2-cp37-cp37m-win_amd64.whl
