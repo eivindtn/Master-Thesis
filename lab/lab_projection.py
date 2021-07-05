@@ -1,3 +1,7 @@
+#MIT License
+
+#Copyright (c) 2021 Eivind Torsrud Nerol
+
 #pip package dependices
 import numpy as np
 import open3d as o3d
